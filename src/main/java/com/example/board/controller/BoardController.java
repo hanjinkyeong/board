@@ -1,81 +1,110 @@
 package com.example.board.controller;
 
 import com.example.board.domain.Board;
-import com.example.board.repository.BoardMemoryRepository;
-import org.springframework.web.bind.annotation.PathVariable;
+import com.example.board.domain.Member;
+import com.example.board.dto.BoardForm;
 import com.example.board.service.BoardService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
-@Controller
-@RequestMapping("boards") //공통경로
 @Slf4j
-@RequiredArgsConstructor //생성자 주입 정의하지않아도 알아서 만들어줌
-public class BoardController {
-	private final BoardService boardService;
+@RequiredArgsConstructor  // 생성자를 주입 받겠다는 어노테이션 (아래의 코드가 필요 없음)
+@RequestMapping("/boards")
+@Controller
 
-//	@Autowired //생성자 주입
-//	public BoardController(BoardService boardService) {
-//		this.boardService = boardService;
-//	}
+public class BoardController {
+	
+	// Controller는 Service에 의존하기 때문에 불러와야함
+	private final BoardService boardService;
+	
+	// 세션에서 로그인 회원 정보를 꺼낸다. 없으면 null로 return 한다.
+	private Member loginMember(HttpSession session){
+		return (Member) session.getAttribute("loginMember");
+	};
+	
+	// 생성자 주입
+//   @Autowired
+//   public BoardController(BoardsService boardsService) {   // BoardsService를 파라미터로 받음
+//      this.boardsService = boardsService;
+//   }
 	
 	// 글 목록
-	@GetMapping
+	@GetMapping // boards로 가게 하기 위해 사용 ()작성 안해도 됨
 	public String list(Model model) {
-//		List<Board> list = boardService.getList(); //모델에 담아서 밑에 넣음
-		model.addAttribute("boards", boardService.getList());
-		
+		model.addAttribute("boards",boardService.getList());
 		return "board/list";
 	}
 	
-	// 글쓰기 화면 이동 (핸들러 메서드)
+	// 글 쓰기 화면 이동  (로그인 필요)
 	@GetMapping("/write")
-	public String writeForm() {
+	public String writeForm(HttpSession session, Model model) {
+		if (loginMember(session) == null){
+			// 로그인 안함 -> 로그인 페이지로 redirect
+			return "redirect:/login";
+		}
 		return "board/write";
 	}
 	
-	// 글쓰기 처리 (핸들러 처리 메서드)
+	// 글 쓰기 처리
 	@PostMapping("/write")
-	public String write(@ModelAttribute Board board) {
-		log.info("글쓰기 처리");
-		log.info("제목:{}", board.getTitle());
-		log.info("작성자:{}", board.getWriter());
-		log.info("내용:{}", board.getContent());
-		boardService.write(board);
+	public String write(
+			@ModelAttribute BoardForm boardForm,
+			HttpSession session) {
+		Member member = loginMember(session);
+		if (member == null){
+			return "redirect:login";
+		}
+		boardService.write(boardForm , member.getLoginId());
 		return "redirect:/boards";
 	}
 	
+	// 메서드 정의 및 return
+	
 	// 글 상세보기
 	@GetMapping("/{id}")
-	public String detail(@PathVariable Long id, Model model) {
-		//id로 Board를 받아온다.
-		Board board = boardService.getById(id);
-		//model에 담아서 리턴
-		model.addAttribute("board",board);
+	public String detail(@PathVariable Long id , Model model) {
+		// id로 Board를 받아온다.
+		// model에 담아서 리턴
+		model.addAttribute("board", boardService.getDetailAndIncreaseView(id));
 		return "board/detail";
 	}
 	
-	// 글 수정화면 이동 메서드
+	// 글 수정 화면 이동
 	@GetMapping("/{id}/edit")
-	public String editForm(@PathVariable Long id, Model model) {
+	public String editForm(
+			@PathVariable Long id ,
+			HttpSession session,
+			Model model) {
+		Member login = loginMember(session);
+		// 로그인 하지 않았을 때
+		if (login == null){
+			return "redirect:/login?redirectUrl=/boards/"+ id + "/edit";
+		}
+		
+		// 작성자와 로그인 사용자가 다를 때
+		if (!boardService.isOwner(id, login.getLoginId())){
+			return "redirect:/boards" + id;
+		}
+		
+		// id로 Board를 받아온다.
 		Board board = boardService.getById(id);
-		model.addAttribute("board",board);
+		// model에 담아서 리턴
+		model.addAttribute("board", board);
 		return "board/edit";
 	}
 	
-	// 글 수정 처리 메서드
+	// 글 수정 처리
 	@PostMapping("/{id}/edit")
-	public String edit(@PathVariable Long id, @ModelAttribute Board board){
-		//서비스 클래스의 수정 메서드를 호출
+	public String edit(@PathVariable Long id, @ModelAttribute Board board) {
+		// 서비스 클래스의 수정 메서드를 호출
 		boardService.update(id, board);
-		return "redirect:/boards/"+ id;
+		return "redirect:/boards";
 	}
 	
 	// 글 삭제
@@ -84,5 +113,7 @@ public class BoardController {
 		// 서비스 클래스의 삭제 메서드를 호출
 		boardService.delete(id);
 		return "redirect:/boards";
+		
 	}
+	
 }

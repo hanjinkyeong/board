@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>로그인</title>
+  <link rel = "stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class = "container">
+  <h1>로그인</h1>
+  <div class = "card">
+      <th:block th:if="${redirectUrl}">
+    <form th:action="@{/login(redirectUrl=${redirectUrl})}" method="post">
+      </th:block>
+      <th:block th:unless="${redirectUrl}">
+        <form th:action="@{/login}" method="post">
+      </th:block>
+<!--      로그인 실패 메세지-->
+      <div class = "error" th:if="${error !=null}" th:text="${error}"></div>
+
+      <div class="form-group">
+        <label for="loginId">아이디</label>
+        <input type="text" id="loginId" name="loginId">
+      </div>
+      <div class="form-group">
+        <label for="password">비밀번호</label>
+        <input type="password" id="password" name="password">
+      </div>
+
+      <button type="submit" class="btn">로그인</button>
+      <a th:href="@{/join}" class="btn gray">회원가입</a>
+    </form>
+  </div>
+</div>
+</body>
+</html>

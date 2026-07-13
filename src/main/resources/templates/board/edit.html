@@ -2,46 +2,33 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>게시글 수정</title>
-  <link rel="stylesheet" href="/css/style.css">
+  <title>글 수정</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
+<header class="topbar">
+  <a class="brand" th:href="@{/boards}">게시판</a>
+  <div class="menu"><a th:href="@{/boards}">목록</a></div>
+</header>
 
 <div class="container">
-  <h1>게시글 수정</h1>
-
+  <h1>글 수정</h1>
   <div class="card">
-    <form th:action="@{/boards/{id}/edit(id=${board.id})}" method="post">
-
-      <div class="form-group">
-        <label for="writer">작성자</label>
-        <input type="text"
-               id="writer"
-               name="writer"
-               th:value="${board.writer}">
-      </div>
-
+    <form th:action="@{/boards/{id}/edit(id=${board.id})}"
+          th:object="${board}"
+          method="post">
       <div class="form-group">
         <label for="title">제목</label>
-        <input type="text"
-               id="title"
-               name="title"
-               th:value="${board.title}">
+        <input type="text" th:field="*{title}">
       </div>
-
       <div class="form-group">
         <label for="content">내용</label>
-        <textarea id="content"
-                  name="content"
-                  th:text="${board.content}"></textarea>
+        <textarea th:field="*{content}"></textarea>
       </div>
-
       <button type="submit" class="btn">수정</button>
-      <a th:href="@{/boards/{id}(id=${board.id})}" class="btn gray">취소</a>
-
+      <a th:href="@{/boards/{id}(id=${boardId})}" class="btn gray">취소</a>
     </form>
   </div>
 </div>
-
 </body>
 </html>
