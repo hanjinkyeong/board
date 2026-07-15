@@ -6,73 +6,31 @@
 package com.example.board.domain;
 
 import java.time.LocalDateTime;
-import lombok.Generated;
 
+import jakarta.persistence.*;
+import lombok.*;
+@NoArgsConstructor
+@Getter @Setter
+@Entity
 public class Board {
-	private Long id;
-	private String title;
-	private String content;
-	private String writer;
-	private int viewCount;
-	private LocalDateTime createdAt;
+	@Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id; //식별자
+	private String title; //제목
 	
-	@Generated
-	public Long getId() {
-		return this.id;
-	}
+	@Column(columnDefinition = "TEXT")
+	private String content; //내용
 	
-	@Generated
-	public String getTitle() {
-		return this.title;
-	}
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "member-id")
+	private Member member; //작성자(회원아이디)
+	private int viewCount; //조회수
+	private LocalDateTime createdAt; //작성 시간
 	
-	@Generated
-	public String getContent() {
-		return this.content;
-	}
-	
-	@Generated
-	public String getWriter() {
-		return this.writer;
-	}
-	
-	@Generated
-	public int getViewCount() {
-		return this.viewCount;
-	}
-	
-	@Generated
-	public LocalDateTime getCreatedAt() {
-		return this.createdAt;
-	}
-	
-	@Generated
-	public void setId(final Long id) {
-		this.id = id;
-	}
-	
-	@Generated
-	public void setTitle(final String title) {
+	public Board(String title, String content, Member member) {
 		this.title = title;
-	}
-	
-	@Generated
-	public void setContent(final String content) {
 		this.content = content;
-	}
-	
-	@Generated
-	public void setWriter(final String writer) {
-		this.writer = writer;
-	}
-	
-	@Generated
-	public void setViewCount(final int viewCount) {
-		this.viewCount = viewCount;
-	}
-	
-	@Generated
-	public void setCreatedAt(final LocalDateTime createdAt) {
-		this.createdAt = createdAt;
+		this.member = member;
+		this.viewCount = 0;
+		this.createdAt = LocalDateTime.now();
 	}
 }

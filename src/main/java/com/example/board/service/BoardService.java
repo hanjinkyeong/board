@@ -1,15 +1,20 @@
 package com.example.board.service;
 
 import com.example.board.domain.Board;
+import com.example.board.domain.Member;
 import com.example.board.dto.BoardForm;
-import com.example.board.repository.BoardMemoryRepository;
+import com.example.board.repository.BoardRepository;
+import com.example.board.repository.MemberRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+
 /*
  *스프링 빈 주입 방법
  * 1. 필드 주입 @Autowired
@@ -18,18 +23,21 @@ import java.util.List;
  */
 @Service
 @Slf4j
+@Transactional(readOnly = true)
+@RequiredArgsConstructor //생성자 주입
 //@Component
 public class BoardService {
 //	필드 주입
 	//	@Autowired
-	private static BoardMemoryRepository boardRepository;
+	private final BoardRepository boardRepository;
+	private final MemberRepository memberRepository;
 
 //	생성자 주입
-	@Autowired
-	public BoardService(BoardMemoryRepository boardRepository){
-		this.boardRepository=boardRepository; //생성자 주입방식
-	log.info("BoardService 생성");
-	}
+//	@Autowired
+//	public BoardService(BoardRepository boardRepository){
+//		this.boardRepository=boardRepository; //생성자 주입방식
+//	log.info("BoardService 생성");
+//	} 위에서 해서 필요없어짐
 	
 //	@Autowired
 //	public void setBoardRepository(BoardMemoryRepository boardRepository){
@@ -42,38 +50,56 @@ public class BoardService {
 	}
 	
 	//글 작성
+	@Transactional
 	public Board write(BoardForm boardForm, String writer){
-		Board board = new Board();
-		board.setTitle(boardForm.getTitle());
-		board.setContent(boardForm.getContent());
-		board.setWriter(writer);
-		board.setViewCount(0);
-		board.setCreatedAt(LocalDateTime.now());
-		return boardRepository.save(board);
+		//writer로 회원 정보 조회
+		Optional<Member> member = memberRepository.findByLoginId(writer);
+		Member loginMember = member.get();
+		if(member.isPresent()){
+			loginMember = member.get();
+			//Board 클래스의 생성자를 호출하여 Board 객체 생성
+			Board board = new Board(boardForm.getTitle(), boardForm.getContent(),loginMember);
+			//데이터베이스에 저장
+			return boardRepository.save(board);
+		}
+//		Board board = new Board();
+//		board.setTitle(boardForm.getTitle());
+//		board.setContent(boardForm.getContent());
+//	//	board.setWriter(writer);
+//		board.setViewCount(0);
+//		board.setCreatedAt(LocalDateTime.now());
+//		return boardRepository.save(board);
+		return null;
 	}
 	
-	//글 조회(조회 수 증가)
+	//글 조회(조회 수 증가) --트랜잭션 필요
+	@Transactional
 	public Board getDetailAndIncreaseView(Long id){
 		Board board = getById(id);
 		board.setViewCount(board.getViewCount()+1);
 		return board;
 	}
 	
-	// 글 조회
+	// 글 조회 --단순 조회라 필요하지않아
 	public Board getById(Long id){
-		return boardRepository.findById(id);
+		Optional<Board> board = boardRepository.findById(id);
+		if(board.isPresent()){
+			return board.get();
+		}
+		return null;
 	}
+	
 	// 글 수정
-	public void update(Long id, Board board){
-		Board findBoard = boardRepository.findById(id);
+	@Transactional
+	public void update(Long id, Board updateBoard){
+		Board findBoard = boardRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("게시글이 없습니다."));
 		
-		findBoard.setTitle(board.getTitle());
-		findBoard.setWriter(board.getWriter());
-		findBoard.setContent(board.getContent());
-		
-		boardRepository.save(findBoard);
+		findBoard.setTitle(updateBoard.getTitle());
+		findBoard.setContent(updateBoard.getContent());
 	}
 	// 글 삭제
+	@Transactional
 	public void delete(Long id){
 		boardRepository.deleteById(id);
 	}
@@ -81,7 +107,15 @@ public class BoardService {
 	// 글의 작성자와 로그인 회원의 아이디가 같은지 확인하는 메서드 (수정, 삭제할 떄 권한이 있는지 체크하는 용도)
 	public boolean isOwner(Long id, String loginId){
 		Board board = getById(id);
-		if(board !=null && board.getWriter().equals(loginId)){
+		if(board == null){
+			return false;
+		}
+		
+		if(board.getMember() == null){
+			return false;
+		}
+		
+		if(board.getMember().getLoginId().equals(loginId)){
 			return true;
 		}
 		return false;

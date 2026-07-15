@@ -9,7 +9,7 @@
 <div class = "container">
   <h1>회원가입</h1>
   <div class = "card">
-    <form action="/join" method="post" th:object="${member}">
+    <form action="/join" method="post" th:object="${joinForm}">
 <!--      아이디 중복 에러 메세지-->
       <div class = "error" th:if="${error !=null}" th:text="${error}"></div>
       <div class="form-group">

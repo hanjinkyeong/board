@@ -45,7 +45,7 @@
         <tr th:each="board : ${boards}">
             <td th:text="${boardStat.count}">1</td>
             <td><a th:href="@{/boards/{id}(id=${board.id})}">[[${board.title}]]</a></td>
-            <td th:text="${board.writer}">작성자</td>
+            <td th:text="${board.member.name}">작성자</td>
             <td>[[${board.viewCount}]]</td>
         </tr>
         </tbody>

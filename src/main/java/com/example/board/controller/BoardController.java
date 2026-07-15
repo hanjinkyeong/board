@@ -5,10 +5,12 @@ import com.example.board.domain.Member;
 import com.example.board.dto.BoardForm;
 import com.example.board.service.BoardService;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -48,19 +50,26 @@ public class BoardController {
 			// 로그인 안함 -> 로그인 페이지로 redirect
 			return "redirect:/login";
 		}
+		model.addAttribute("boardForm", new BoardForm());
 		return "board/write";
 	}
 	
 	// 글 쓰기 처리
 	@PostMapping("/write")
 	public String write(
-			@ModelAttribute BoardForm boardForm,
+			@Valid @ModelAttribute("boardForm") BoardForm boardForm,
+			BindingResult bindingResult, // 유효성 검증
 			HttpSession session) {
+		log.info("bindingResult={}", bindingResult);
 		Member member = loginMember(session);
-		if (member == null){
+		if (member == null) {
 			return "redirect:login";
 		}
-		boardService.write(boardForm , member.getLoginId());
+		//유효성 검증에 오류가 있으면 글쓰기 화면으로 다시 보낸다.
+		if(bindingResult.hasErrors()){
+			return "board/write";
+		}
+		boardService.write(boardForm, member.getLoginId());
 		return "redirect:/boards";
 	}
 	
@@ -89,7 +98,7 @@ public class BoardController {
 		
 		// 작성자와 로그인 사용자가 다를 때
 		if (!boardService.isOwner(id, login.getLoginId())){
-			return "redirect:/boards" + id;
+			return "redirect:/boards/" + id;
 		}
 		
 		// id로 Board를 받아온다.

@@ -1,8 +1,27 @@
 spring:
-  application:
-    name: board
+  messages:
+    basename: messages, errors
+    encoding: UTF-8
 
-  server:
-    servlet:
-      session:
-        tracking-modes: cookie
+  datasource:
+    url: jdbc:mysql://localhost:3306/boarddb
+    username: root
+    password: 1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      # ?? ?? ? ?????? ??? ?? ??(create, create-drop, update, validate)
+      ddl-auto: create
+    # Hibernate? ???? SQL? ??? ??
+    show-sql: true
+    properties:
+      hibernate:
+        # SQL을 보기 편하게 줄바꿈
+        format_sql:true
+
+
+server:
+  servlet:
+    session:
+      tracking-modes: cookie

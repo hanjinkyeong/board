@@ -5,46 +5,34 @@
 
 package com.example.board.domain;
 
-import lombok.Generated;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import jakarta.persistence.Id;
 
+@Getter @Setter
+@ToString
+@NoArgsConstructor
+@Entity
 public class Member {
-	private String loginId;
-	private String password;
-	private String name;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 	
-	@Generated
-	public String getLoginId() {
-		return this.loginId;
-	}
+	@Column(unique = true, nullable = false)
+	private String loginId; //로그인 아이디
+	private String password; //비밀번호
+	private String name; //회원 이름
 	
-	@Generated
-	public String getPassword() {
-		return this.password;
-	}
-	
-	@Generated
-	public String getName() {
-		return this.name;
-	}
-	
-	@Generated
-	public void setLoginId(final String loginId) {
+	public Member(String loginId, String password, String name) {
 		this.loginId = loginId;
-	}
-	
-	@Generated
-	public void setPassword(final String password) {
 		this.password = password;
-	}
-	
-	@Generated
-	public void setName(final String name) {
 		this.name = name;
 	}
 	
-	@Generated
-	public String toString() {
-		String var10000 = this.getLoginId();
-		return "Member(loginId=" + var10000 + ", password=" + this.getPassword() + ", name=" + this.getName() + ")";
-	}
 }
