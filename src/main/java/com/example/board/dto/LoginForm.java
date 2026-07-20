@@ -15,6 +15,6 @@ public class LoginForm {
 	@NotBlank(message = "아이디를 입력하세요") // null 또는 ""(공백) 불가
 	private String loginId;
 	@Size(min = 4, max = 30)
-//	@NotBlank(message = "패스워드를 입력하세요")
+	@NotBlank(message = "패스워드를 입력하세요")
 	private String password;
 }

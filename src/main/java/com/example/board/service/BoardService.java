@@ -3,15 +3,15 @@ package com.example.board.service;
 import com.example.board.domain.Board;
 import com.example.board.domain.Member;
 import com.example.board.dto.BoardForm;
+import com.example.board.exception.BoardNotFoundException;
+import com.example.board.exception.UnauthorizedException;
 import com.example.board.repository.BoardRepository;
 import com.example.board.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -82,16 +82,16 @@ public class BoardService {
 	
 	// 글 조회 --단순 조회라 필요하지않아
 	public Board getById(Long id){
-		Optional<Board> board = boardRepository.findById(id);
-		if(board.isPresent()){
-			return board.get();
+		Board board = boardRepository.findWithMember(id);
+		if(board == null){
+			throw new BoardNotFoundException("ID : " + id + "게시글이 존재하지 않습니다.");
 		}
-		return null;
+		return board;
 	}
 	
 	// 글 수정
 	@Transactional
-	public void update(Long id, Board updateBoard){
+	public void update(Long id, BoardForm updateBoard){
 		Board findBoard = boardRepository.findById(id)
 				.orElseThrow(() -> new RuntimeException("게시글이 없습니다."));
 		
@@ -107,18 +107,13 @@ public class BoardService {
 	// 글의 작성자와 로그인 회원의 아이디가 같은지 확인하는 메서드 (수정, 삭제할 떄 권한이 있는지 체크하는 용도)
 	public boolean isOwner(Long id, String loginId){
 		Board board = getById(id);
-		if(board == null){
-			return false;
-		}
-		
-		if(board.getMember() == null){
-			return false;
-		}
-		
-		if(board.getMember().getLoginId().equals(loginId)){
+		if(board != null && board.getMember().getLoginId().equals(loginId)){
 			return true;
+		}else {
+			throw new UnauthorizedException("수정 및 삭제 권한이 없다");
 		}
-		return false;
+		
 	}
+	
 }
 

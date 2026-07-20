@@ -3,6 +3,8 @@ package com.example.board.controller;
 import com.example.board.domain.Board;
 import com.example.board.domain.Member;
 import com.example.board.dto.BoardForm;
+import com.example.board.exception.BoardNotFoundException;
+import com.example.board.exception.UnauthorizedException;
 import com.example.board.service.BoardService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -26,9 +28,9 @@ public class BoardController {
 	private final BoardService boardService;
 	
 	// 세션에서 로그인 회원 정보를 꺼낸다. 없으면 null로 return 한다.
-	private Member loginMember(HttpSession session){
-		return (Member) session.getAttribute("loginMember");
-	};
+//	private Member loginMember(HttpSession session){
+//		return (Member) session.getAttribute("loginMember");
+//	};
 	
 	// 생성자 주입
 //   @Autowired
@@ -45,11 +47,11 @@ public class BoardController {
 	
 	// 글 쓰기 화면 이동  (로그인 필요)
 	@GetMapping("/write")
-	public String writeForm(HttpSession session, Model model) {
-		if (loginMember(session) == null){
-			// 로그인 안함 -> 로그인 페이지로 redirect
-			return "redirect:/login";
-		}
+	public String writeForm(Model model) {
+//		if (loginMember(session) == null){
+//			// 로그인 안함 -> 로그인 페이지로 redirect
+//			return "redirect:/login";
+//		}
 		model.addAttribute("boardForm", new BoardForm());
 		return "board/write";
 	}
@@ -59,9 +61,9 @@ public class BoardController {
 	public String write(
 			@Valid @ModelAttribute("boardForm") BoardForm boardForm,
 			BindingResult bindingResult, // 유효성 검증
-			HttpSession session) {
-		log.info("bindingResult={}", bindingResult);
-		Member member = loginMember(session);
+			@SessionAttribute("loginMember") Member member) {
+//		log.info("bindingResult={}", bindingResult);
+//		Member member = loginMember(session);
 		if (member == null) {
 			return "redirect:login";
 		}
@@ -73,14 +75,13 @@ public class BoardController {
 		return "redirect:/boards";
 	}
 	
-	// 메서드 정의 및 return
-	
 	// 글 상세보기
 	@GetMapping("/{id}")
 	public String detail(@PathVariable Long id , Model model) {
 		// id로 Board를 받아온다.
 		// model에 담아서 리턴
 		model.addAttribute("board", boardService.getDetailAndIncreaseView(id));
+	//	return "error/board-not-found";
 		return "board/detail";
 	}
 	
@@ -88,16 +89,16 @@ public class BoardController {
 	@GetMapping("/{id}/edit")
 	public String editForm(
 			@PathVariable Long id ,
-			HttpSession session,
+			@SessionAttribute("loginMember") Member member,
 			Model model) {
-		Member login = loginMember(session);
-		// 로그인 하지 않았을 때
-		if (login == null){
-			return "redirect:/login?redirectUrl=/boards/"+ id + "/edit";
-		}
+//		Member login = loginMember(session);
+//		// 로그인 하지 않았을 때
+//		if (login == null){
+//			return "redirect:/login?redirectUrl=/boards/"+ id + "/edit";
+//		}
 		
 		// 작성자와 로그인 사용자가 다를 때
-		if (!boardService.isOwner(id, login.getLoginId())){
+		if (!boardService.isOwner(id, member.getLoginId())){
 			return "redirect:/boards/" + id;
 		}
 		
@@ -110,19 +111,32 @@ public class BoardController {
 	
 	// 글 수정 처리
 	@PostMapping("/{id}/edit")
-	public String edit(@PathVariable Long id, @ModelAttribute Board board) {
+	public String edit(@PathVariable Long id,
+					   @ModelAttribute("boardForm") BoardForm boardForm,
+					   @SessionAttribute("loginMember") Member member) {
+		//로그인 한 사용자가 작성자와 같은지 확인
+		if (!boardService.isOwner(id, member.getLoginId())){
+			return "redirect:/boards/" + id;
+		}
 		// 서비스 클래스의 수정 메서드를 호출
-		boardService.update(id, board);
+		boardService.update(id, boardForm);
 		return "redirect:/boards";
 	}
 	
 	// 글 삭제
 	@PostMapping("/{id}/delete")
-	public String delete(@PathVariable Long id) {
+	public String delete(@PathVariable Long id,
+						 @SessionAttribute("loginMember") Member member) {
+		//로그인 한 사용자가 작성자와 같은지 확인
+		if(!boardService.isOwner(id, member.getLoginId())){
+			return "redirect:/boards/" + id;
+		}
 		// 서비스 클래스의 삭제 메서드를 호출
 		boardService.delete(id);
 		return "redirect:/boards";
 		
 	}
+	
+	
 	
 }

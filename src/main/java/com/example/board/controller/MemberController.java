@@ -36,8 +36,15 @@ public class MemberController {
 	
 	// 회원 가입 처리
 	@PostMapping("/join")
-	public String join(@ModelAttribute("joinForm") MemberJoinForm joinForm, Model model){
+	public String join(@Valid @ModelAttribute("joinForm") MemberJoinForm joinForm,
+					   BindingResult bindingResult,
+					   Model model){
 //      log.info("member: {}", member);
+		// 회원 아이디 길이 체크
+		if(bindingResult.hasErrors()){
+			log.info("4자리 미만 가입 불가");
+			return "/member/join";
+		}
 		// 회원 아이디 중복 체크
 		if(memberService.isDuplicateLoginId(joinForm.getLoginId())){
 			// 중복된 아이디가 있으면 가입 안됨
@@ -68,7 +75,7 @@ public class MemberController {
 						@RequestParam(required = false) String redirectUrl,
 						Model model, HttpServletRequest request){ // 세션은 request에 저장되어 있다.
 		//파라미터 유효성 검증 성공 여부 확인
-		log.info("bindinfResulf: {}", bindingResult);
+		log.info("bindingResult: {}", bindingResult);
 		if (bindingResult.hasErrors()) {
 			log.info("파라미터 검증 실패");
 			return "member/login";
@@ -100,6 +107,17 @@ public class MemberController {
 		return "redirect:/boards";
 	}
 	
+	//에러 페이지 테스트
+	@GetMapping("/error-500")
+	public String error_500(){
+		log.info("500에러 발생");
+		throw new RuntimeException("500에러 발생");// 예외처리 따로 안해도
+												// 템플릿-에러-500.html을 찾아서 내보낸다
+	}
 	
-	
+	@GetMapping("/error-404")
+	public String error_404(){
+		log.info("404에러 발생");
+		throw new RuntimeException("404에러 발생"); //똑같다
+	}
 }

@@ -16,16 +16,21 @@ public class InitData {
 	public CommandLineRunner init() {
 		return args -> {
 			
-			if(memberRepository.findByLoginId("user1").isEmpty()) {
-				
 				Member member = new Member(
 						"1111",
 						"1111",
 						"사용자1"
 				);
-				
+			
+				Member member2 = new Member(
+						"2222",
+						"2222",
+						"사용자2"
+				);
+			
 				memberRepository.save(member);
-			}
+				memberRepository.save(member2);
+			
 		};
 	}
 }

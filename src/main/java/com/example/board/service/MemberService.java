@@ -21,6 +21,7 @@ public class MemberService {
 		return memberRepository.findByLoginId(loginId).isPresent();
 	}
 	
+	
 	// 회원가입
 	@Transactional
 	public void join(MemberJoinForm joinForm){
@@ -48,5 +49,10 @@ public class MemberService {
 				.filter(member -> member.getPassword().equals(password));
 	}
 	
+	//회원정보 조회
+	public Member findByMemberId(Long id){
+		return memberRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException(id + "회원정보가 존재하지 않습니다."));
+	}
 	
 }
