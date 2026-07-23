@@ -6,10 +6,12 @@
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
+<div th:replace="~{fragments/header :: header}"></div>
 <div class="container">
   <h1>글쓰기</h1>
   <div class="card">
-    <form th:action="@{/boards/write}" method="post" th:object="${boardForm}">
+    <form th:action="@{/boards/write}" method="post" th:object="${boardForm}"
+          enctype="multipart/form-data"> <!-- enctype: multipart 첨부파일 데이터를 저장하는 타입 -->
       <div class="form-group">
         <label for="title">제목</label>
         <input type="text" th:field="*{title}">
@@ -19,6 +21,10 @@
         <label for="content">내용</label>
         <textarea th:field="*{content}"></textarea>
         <div class="error" th:errors="*{content}"></div>
+      </div>
+      <div class="form-group">
+        <label for="file">첨부파일</label>
+        <input type="file" id="file" name="file" multiple>
       </div>
       <button type="submit" class="btn">등록</button>
       <a th:href="@{/boards}" class="btn gray">취소</a>

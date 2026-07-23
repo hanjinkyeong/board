@@ -6,26 +6,24 @@
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-<header class="topbar">
-    <div class="menu">
-        <!-- 로그인을 한 경우 -->
-        <span th:if="${session.loginMember != null}">
-            <b th:text="${session.loginMember.name}">사용자</b>님
-            <form th:action="@{/logout}" method="post" style="display: inline;">
-                <button type="submit" class="btn gray">로그아웃</button>
-            </form>
-        </span>
-        <!-- 로그인을 하지 않은 경우 -->
-        <span th:if="${session.loginMember == null}">
-            <a th:href="@{/login}">로그인</a>
-            <a th:href="@{/join}">회원가입</a>
-        </span>
-    </div>
-</header>
+<!--~{프래그먼트의 경로 :: 프래그먼트 이름}-->
+<!--th:insert : 하위 속성으로 추가-->
+<!--th:replace : 속성을 대체-->
+<div th:replace="~{fragments/header :: header}"></div>
 
 <div class="container">
     <h1>게시글 목록</h1>
 
+    <div class="toolbar">
+        <form class="search-box" th:action="@{/boards}">
+            <select name="searchType">
+                <option value="title" th:selected="${searchType == 'title'}">제목</option>
+                <option value="titleContent" th:selected="${searchType == 'titleContent'}">제목+내용</option>
+            </select>
+            <input type="text" name="searchKeyword" th:value="${searchKeyword}" placeholder="검색어를 입력하세요">
+            <button type="submit" class="btn">검색</button>
+        </form>
+    </div>
     <div class="toolbar">
         <span></span>
         <a th:if="${session.loginMember != null}"
@@ -50,6 +48,35 @@
         </tr>
         </tbody>
     </table>
+<!--페이징 처라-->
+<!--
+    페이지 번호 렌더링
+    boardPage에서 필요한 값을 꺼내서 th:with로 지역 변수를 선언
+    - blockSize: 한 화면에 보여줄 페이지 번호의 갯수(1~10, 11~20,..10개씩 묶어서 보여줌)
+    - currentPage: 사용자가 보는 현재 페이지 번호(1부터 시작)
+    - totalPages: 전체 페이지 수
+    - startPage: 현재 블록의 시작 페이지 번호
+                 ex) currentPage=13, blockSize=10이면 (13-1)/10*10+1 = 11 (11-20)
+    - endPage: 현재 블록의 마지막 페이지 번호, 전체 페이지 수를 넘지 않도록 totalPages와
+                비교해서 더 작은 값을 사용
+-->
+    <div class="pagination" th:with="blockSize=10,
+                                      currentPage=${boardPage.number + 1},
+                                      totalPages=${boardPage.totalPages},
+                                      startPage=${((currentPage - 1) / blockSize) * blockSize + 1},
+                                      endPage=${(startPage + blockSize -1) < totalPages} ?
+                                      ${startPage + blockSize -1} :${totalPages}">
+            <!-- 이전 블록으로 이동: 현재 블록의 시작 페이지가 1보다 클 경우 표시       -->
+            <a th:if="${startPage > 1}" th:href="@{/boards(page=${startPage - 1})}">이전</a>
+            <!-- #numbers.sequence(start, end): start부터 end까지 숫자 목록을 순회하며 숫자 목록 생성 -->
+    <a th:each="p: ${#numbers.sequence(startPage, endPage)}"
+       th:href="@{/boards(page=${p})}"
+       th:text="${p}"
+       th:class="${p == currentPage} ? 'active' : ''"></a>
+
+        <!-- 다음 블록으로 이동: 현재 블록의 끝 페이지가 전체 페이지 수보다 작을 경우 표시       -->
+        <a th:if="${endPage < totalPages}" th:href="@{/boards(page=${endPage + 1})}">다음</a>
+    </div>
 </div>
 </body>
 </html>

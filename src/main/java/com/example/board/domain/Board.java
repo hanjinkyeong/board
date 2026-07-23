@@ -26,11 +26,20 @@ public class Board {
 	private int viewCount; //조회수
 	private LocalDateTime createdAt; //작성 시간
 	
+	// 첨부파일
+	private String originalFileName; //사용자가 올린 원래 파일명
+	private String storedFileName; //서버에 저장된 실제 파일명
+	
 	public Board(String title, String content, Member member) {
 		this.title = title;
 		this.content = content;
 		this.member = member;
 		this.viewCount = 0;
 		this.createdAt = LocalDateTime.now();
+	}
+	
+	// 첨부파일이 있는지 확인
+	public boolean isHasAttachment(){
+		return storedFileName != null;
 	}
 }

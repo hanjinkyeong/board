@@ -13,13 +13,13 @@ spring:
     hibernate:
       # 서버 실행 시 데이터베이스 테이블 생성 전략(create, create-drop, update[변경 사항], validate)
       # 프로젝트 만들때나 협업 및 운영 : (update, validate)를 사용하는것이 최적
-      ddl-auto: create
+      ddl-auto: update
     # Hibernate가 실행하는 SQL을 콘솔에 출력
     show-sql: true
     properties:
       hibernate:
         # SQL을 보기 편하게 줄바꿈
-        format_sql:true
+        format_sql: true
 
 
 server:
@@ -29,3 +29,13 @@ server:
 #  error:
 #    whitelabel:
 #      enabled: false
+
+# 첨부파일 저장 경로
+file:
+  upload-path: ./upload
+
+
+
+
+
+

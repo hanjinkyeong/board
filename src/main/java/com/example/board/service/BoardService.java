@@ -9,11 +9,20 @@ import com.example.board.repository.BoardRepository;
 import com.example.board.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /*
  *스프링 빈 주입 방법
@@ -31,6 +40,7 @@ public class BoardService {
 	//	@Autowired
 	private final BoardRepository boardRepository;
 	private final MemberRepository memberRepository;
+	private final FileService fileService;
 
 //	생성자 주입
 //	@Autowired
@@ -45,13 +55,22 @@ public class BoardService {
 //	}
 	
 	//전체 글 목록
-	public List<Board> getList(){
-		return boardRepository.findAll();
+	public Page<Board> getList(Pageable pageable, String searchType, String searchKeyword) {
+		//전체 조회일 경우
+		if(searchKeyword == null || searchKeyword.isBlank()) {
+			return boardRepository.findAllWithMember(pageable);
+		}
+		//제목 검색일 경우
+		if(searchType.equals("title")) {
+			return boardRepository.findByTitleContaining(searchKeyword, pageable);
+		}
+		//제목 + 내용
+		return boardRepository.findByTitleContainingOrContentContaining(searchKeyword, pageable);
 	}
 	
 	//글 작성
 	@Transactional
-	public Board write(BoardForm boardForm, String writer){
+	public Board write(BoardForm boardForm, String writer, MultipartFile file)throws IOException{
 		//writer로 회원 정보 조회
 		Optional<Member> member = memberRepository.findByLoginId(writer);
 		Member loginMember = member.get();
@@ -59,6 +78,14 @@ public class BoardService {
 			loginMember = member.get();
 			//Board 클래스의 생성자를 호출하여 Board 객체 생성
 			Board board = new Board(boardForm.getTitle(), boardForm.getContent(),loginMember);
+			
+			//첨부파일이 있을 경우에 저장
+			if(file != null && !file.isEmpty()){
+				String storedFileName = fileService.storeFile(file);
+				board.setOriginalFileName(file.getOriginalFilename());
+				board.setStoredFileName(storedFileName);
+			}
+			
 			//데이터베이스에 저장
 			return boardRepository.save(board);
 		}
@@ -91,16 +118,44 @@ public class BoardService {
 	
 	// 글 수정
 	@Transactional
-	public void update(Long id, BoardForm updateBoard){
+	public void update(Long id, BoardForm updateBoard,
+					   MultipartFile file,
+					   boolean deleteFile) throws IOException {
 		Board findBoard = boardRepository.findById(id)
 				.orElseThrow(() -> new RuntimeException("게시글이 없습니다."));
-		
+
 		findBoard.setTitle(updateBoard.getTitle());
 		findBoard.setContent(updateBoard.getContent());
+		
+		// 기존 파일 삭제
+		if(deleteFile && findBoard.getStoredFileName() != null){
+			fileService.deleteFile(findBoard.getStoredFileName());
+			findBoard.setOriginalFileName(null);
+			findBoard.setStoredFileName(null);
+		}
+		
+		// 새 파일 업로드
+		if(file != null && !file.isEmpty()) {
+			
+			// 기존 파일이 남아있으면 삭제
+			if (findBoard.getStoredFileName() != null) {
+				fileService.deleteFile(findBoard.getStoredFileName());
+			}
+			
+			String storedFileName = fileService.storeFile(file);
+			
+			findBoard.setOriginalFileName(file.getOriginalFilename());
+			findBoard.setStoredFileName(storedFileName);
+		}
 	}
 	// 글 삭제
 	@Transactional
 	public void delete(Long id){
+		// 첨부파일이 있으면 먼저 삭제
+		boardRepository.findById(id).ifPresent(
+				board -> fileService.deleteFile(board.getStoredFileName())
+		);
+		
 		boardRepository.deleteById(id);
 	}
 	
@@ -114,6 +169,8 @@ public class BoardService {
 		}
 		
 	}
+	
+	
 	
 }
 
