@@ -44,7 +44,7 @@ public class BoardController {
 	// Controller는 Service에 의존하기 때문에 불러와야함
 	private final BoardService boardService;
 	
-	private static final int PAGE_SIZE = 1; //모든 게시판 기본 사이즈 지정
+	private static final int PAGE_SIZE = 10; //모든 게시판 기본 사이즈 지정
 	
 	// 세션에서 로그인 회원 정보를 꺼낸다. 없으면 null로 return 한다.
 //	private Member loginMember(HttpSession session){

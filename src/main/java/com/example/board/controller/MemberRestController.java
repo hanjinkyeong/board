@@ -22,5 +22,5 @@ public class MemberRestController {
 		return ResponseEntity.ok(member);
 	}
 	
-	
+	//
 }
