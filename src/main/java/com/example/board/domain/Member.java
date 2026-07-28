@@ -5,15 +5,13 @@
 
 package com.example.board.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import jakarta.persistence.Id;
+
+import javax.management.relation.RelationNotification;
 
 @Getter @Setter
 @ToString
@@ -29,10 +27,16 @@ public class Member {
 	private String password; //비밀번호
 	private String name; //회원 이름
 	
-	public Member(String loginId, String password, String name) {
+	@Enumerated(EnumType.STRING)
+	private  Role role;
+	
+	public Member(String loginId, String password, String name, Role role) {
 		this.loginId = loginId;
 		this.password = password;
 		this.name = name;
+		this.role = role;
 	}
+	
+	
 	
 }

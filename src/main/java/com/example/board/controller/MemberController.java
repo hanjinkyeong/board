@@ -64,6 +64,7 @@ public class MemberController {
 		if(redirectUrl != null){
 			model.addAttribute("redirectUrl", redirectUrl);
 		}
+		model.addAttribute("loginForm", new LoginForm());
 		return "member/login";
 	}
 	

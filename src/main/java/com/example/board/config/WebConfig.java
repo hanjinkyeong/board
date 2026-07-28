@@ -15,18 +15,18 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer { //WebMvcConfigurer:스프링 MVC 설정을 커스터마이징할 때 사용하는 인터페이스
 	
 	// 메서드 구현-> 인터셉터 등록
-	@Override
-	public void addInterceptors(InterceptorRegistry registry) {
-		registry.addInterceptor(new LoginCheckInterceptor())
-				//인터셉터 실행 순서
-				.order(1)
-				//인터셉터 실행 경로
-				.addPathPatterns(
-						"/boards/write",
-						"/boards/*/edit",
-						"/boards/*/delete");
-		
-	}
+//	@Override
+//	public void addInterceptors(InterceptorRegistry registry) {
+//		registry.addInterceptor(new LoginCheckInterceptor())
+//				//인터셉터 실행 순서
+//				.order(1)
+//				//인터셉터 실행 경로
+//				.addPathPatterns(
+//						"/boards/write",
+//						"/boards/*/edit",
+//						"/boards/*/delete");
+//
+//	}
 	
 	@Bean
 	public FilterRegistrationBean<LogFilter> logFilter(){

@@ -1,5 +1,6 @@
 package com.example.board.controller;
 
+import com.example.board.config.CustomUserDetails;
 import com.example.board.domain.Board;
 import com.example.board.domain.Member;
 import com.example.board.dto.BoardForm;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -62,7 +64,9 @@ public class BoardController {
 	public String list(@RequestParam(defaultValue = "1")int page,
 					   @RequestParam(required = false) String searchType,
 					   @RequestParam(required = false) String searchKeyword,
-					   Model model) {
+					   Model model,
+					   @AuthenticationPrincipal CustomUserDetails userDetails) {
+		log.info("userDetails={}", userDetails);
 		/*
 		Pageable 객체 생성: 리포지토리에 몇 번째 페이지를, 몇 건씩, 어떤 정렬로
 		조회할지 전달하는 값

@@ -1,5 +1,8 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
@@ -8,14 +11,14 @@
 <header class="topbar" th:fragment="header">
     <div class="menu">
         <!-- 로그인을 한 경우 -->
-        <span th:if="${session.loginMember != null}">
-            <b th:text="${session.loginMember.name}">사용자</b>님
+        <span sec:authorize="isAuthenticated()">
+            <b sec:authentication="principal.member.name"></b>님
             <form th:action="@{/logout}" method="post" style="display: inline;">
                 <button type="submit" class="btn gray">로그아웃</button>
             </form>
         </span>
         <!-- 로그인을 하지 않은 경우 -->
-        <span th:if="${session.loginMember == null}">
+        <span sec:authorize="isAnonymous()">
             <a th:href="@{/login}">로그인</a>
             <a th:href="@{/join}">회원가입</a>
         </span>

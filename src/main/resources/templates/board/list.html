@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title>게시판</title>
@@ -10,6 +12,23 @@
 <!--th:insert : 하위 속성으로 추가-->
 <!--th:replace : 속성을 대체-->
 <div th:replace="~{fragments/header :: header}"></div>
+
+<!--시큐리티 정보-->
+<div>시큐리티 정보
+    <!--ROLE_USER 권한을 가지고 있으면 이 글이 보임-->
+    <h2 sec:authorize="hasRole('USER')">Has User Role</h2>
+    <!--ROLE_ADMIN 권한을 가지고 있으면 이 글이 보임-->
+    <h2 sec:authorize="hasRole('ADMIN')">Has Admin Role</h2>
+    <!--권한과 상관 없이 인증이 되어있으면 이 글이 보임-->
+    <div sec:authorize="isAuthenticated()">인증이 된 사용자만 보임</div>
+    <!--인증시 사용된 객체에 대한 정보(CustomUserDetails)-->
+    <div sec:authentication="principal"></div>
+    <!--인증시 사용된 갹체의 username(loginId) 정보-->
+    <div sec:authentication="name"></div>
+    <!--권한-->
+    <div sec:authorize="isAuthenticated()"
+         sec:authentication="principal.authorities"></div>
+</div>
 
 <div class="container">
     <h1>게시글 목록</h1>

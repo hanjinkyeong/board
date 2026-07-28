@@ -1,9 +1,11 @@
 package com.example.board.service;
 
 import com.example.board.domain.Member;
+import com.example.board.domain.Role;
 import com.example.board.dto.MemberJoinForm;
 import com.example.board.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +16,7 @@ import java.util.Optional;
 @Transactional(readOnly = true) //리드 온리 안붙이면 모든 메서드에서 트랜젝션 작업을 하기 때문(데이터 변경 X 할필요없다)
 public class MemberService {
 	private final MemberRepository memberRepository;
+	private final PasswordEncoder passwordEncoder;
 	
 	// 아이디 중복 확인 메서드
 	public boolean isDuplicateLoginId(String loginId){
@@ -27,8 +30,9 @@ public class MemberService {
 	public void join(MemberJoinForm joinForm){
 		Member member = new Member(
 				joinForm.getLoginId(),
-				joinForm.getPassword(),
-				joinForm.getName());
+				passwordEncoder.encode(joinForm.getPassword()),
+				joinForm.getName(),
+				Role.ROLE_USER);
 
       memberRepository.save(member);
 	}
